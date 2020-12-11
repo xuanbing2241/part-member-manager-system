@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>填写目标信息表</title>
+    <!-- 引入网站图标 -->
+    <link rel="icon" href="/pmms/ico/favicon.ico" type="image/x-icon"/>
+    <link rel="bookmark" href="/pmms/ico/favicon.ico" type="image/x-icon"/>
+    <!-- 引入 Element UI 样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+
+    <style type="text/css">
+        body{
+            background-image: url("/pmms/img/bg_index.png");
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <el-container>
+            <!--头部-->
+            <el-header>
+                <el-row>
+                    <el-col :span="18" :offset="3">
+                        <el-menu
+                                class="el-menu-demo"
+                                mode="horizontal"
+                                background-color="#545c64"
+                                text-color="#fff"
+                                active-text-color="#fff">
+                            <el-menu-item index="1"><el-link style="color: white;" href="/pmms/page/student/index.html" :underline="false">首页</el-link></el-menu-item>
+                            <el-submenu index="2">
+                                <template slot="title">填写表格</template>
+                                <el-menu-item index="2-1"><el-link style="color: white;" href="/pmms/page/student/fillTarget.html" :underline="false">目标信息表</el-link></el-menu-item>
+                                <el-menu-item index="2-2"><el-link style="color: white;" href="/pmms/page/student/checkTarget.html" :underline="false">目标验收表</el-link></el-menu-item>
+                            </el-submenu>
+                            <el-submenu index="3" style="float: right">
+                                <!--头像-->
+                                <template slot="title">
+                                    <el-avatar size="large" src="/pmms/ico/favicon.ico" style="margin-right:10px"></el-avatar>
+                                    <span v-text="student.name"></span>
+                                </template>
+                                <el-menu-item index="3-1" @click="updatePassword">修改密码</el-menu-item>
+                                <el-menu-item index="3-2" @click="logout">安全退出</el-menu-item>
+                            </el-submenu>
+                        </el-menu>
+                    </el-col>
+                </el-row>
+            </el-header>
+
+            <!--内容区-->
+            <el-main>
+                <el-row>
+                    <el-col :span="18" :offset="3">
+                        <div>
+                            <el-collapse v-model="activeNames">
+                                <el-collapse-item name="1">
+                                    <template slot="title">
+                                        <el-tag style="margin-left: 10px;">基本信息</el-tag>
+                                    </template>
+                                    <div style="margin-left: 10px;">
+                                        <el-form label-position="left" :inline="true" :model="studentInfo" class="demo-form-inline">
+                                            <el-form-item label="学号">
+                                                <el-input v-model="studentInfo.id" disabled></el-input>
+                                            </el-form-item>
+                                            <el-form-item label="姓名">
+                                                <el-input v-model="studentInfo.name" disabled></el-input>
+                                            </el-form-item>
+                                            <el-form-item label="身份">
+                                                <el-input disabled v-model="studentInfo.status" ></el-input>
+                                            </el-form-item>
+                                            <el-form-item label="阶段">
+                                                <el-input disabled v-model="studentInfo.stage" style="width:270px;"></el-input>
+                                            </el-form-item>
+                                            <el-form-item label="班级">
+                                                <el-input disabled v-model="studentInfo.major" ></el-input>
+                                            </el-form-item>
+                                            <el-form-item label="职务">
+                                                <el-input disabled v-model="studentInfo.duty" ></el-input>
+                                            </el-form-item>
+                                        </el-form>
+                                    </div>
+                                </el-collapse-item>
+                                <div v-show="studentInfo.status != '中共正式党员（毕业）' ">
+                                    <el-collapse-item name="2">
+                                        <template slot="title">
+                                            <el-tag style="margin-left: 10px;">思想政治表现</el-tag>
+                                        </template>
+                                        <div style="margin-left: 10px;">
+                                            <el-form label-position="left" :model="targetInfo" label-width="100px" style="width:60%;">
+                                                <el-form-item label="思想汇报情况">
+                                                    <el-input type="textarea"
+                                                              autosize v-model="targetInfo.thinking_report"></el-input>
+                                                </el-form-item>
+                                            </el-form>
+                                        </div>
+                                    </el-collapse-item>
+                                    <el-collapse-item name="3">
+                                        <template slot="title">
+                                            <el-tag style="margin-left: 10px;">专业技能表现</el-tag>
+                                        </template>
+                                        <div style="margin-left: 10px;">
+                                            <el-form label-position="left" :model="targetInfo" label-width="100px" style="width:60%;">
+                                                <el-form-item label="荣誉称号">
+                                                    <el-input type="textarea"
+                                                              autosize v-model="targetInfo.honorary_title"></el-input>
+                                                </el-form-item>
+                                                <el-form-item label="智育成绩">
+                                                    <el-input type="textarea"
+                                                              autosize v-model="targetInfo.first_rank"></el-input>
+                                                </el-form-item>
+                                                <el-form-item label="综测成绩">
+                                                    <el-input type="textarea"
+                                                              autosize v-model="targetInfo.second_rank"></el-input>
+                                                </el-form-item>
+                                                <el-form-item label="奖学金">
+                                                    <el-input type="textarea"
+                                                              autosize v-model="targetInfo.scholarship_level"></el-input>
+                                                </el-form-item>
+                                                <el-form-item label="其他等级考试">
+                                                    <el-input type="textarea"
+                                                              autosize v-model="targetInfo.ncre"></el-input>
+                                                </el-form-item>
+                                                <el-form-item label="学科竞赛">
+                                                    <el-input type="textarea"
+                                                              autosize v-model="targetInfo.contest"></el-input>
+                                                </el-form-item>
+                                            </el-form>
+                                        </div>
+                                    </el-collapse-item>
+                                    <el-collapse-item name="4">
+                                        <template slot="title">
+                                            <el-tag style="margin-left: 10px;">社会实践表现</el-tag>
+                                        </template>
+                                        <div style="margin-left: 10px;">
+                                            <el-form label-position="left" :model="targetInfo" label-width="100px" style="width:60%;">
+                                                <el-form-item label="社会实践">
+                                                    <el-input type="textarea"
+                                                              autosize v-model="targetInfo.social_practice"></el-input>
+                                                </el-form-item>
+                                                <el-form-item label="文体竞赛">
+                                                    <el-input type="textarea"
+                                                              autosize v-model="targetInfo.sport_activity"></el-input>
+                                                </el-form-item>
+                                            </el-form>
+                                        </div>
+                                    </el-collapse-item>
+                                </div>
+                            </el-collapse>
+                        </div>
+                        <div v-show="studentInfo.status != '中共正式党员（毕业）' " align="center" style="margin-top:15px;">
+                            <el-button type="success" @click="submitForm">提交</el-button>
+                            &nbsp;&nbsp;&nbsp;&nbsp;
+                            <el-button type="warning" @click="reset">清空</el-button>
+                        </div>
+                        <div v-show="studentInfo.status == '中共正式党员（毕业）' " style="text-align: center; margin-top: 40px;">
+                            <span style="color:red; font-size: large;">恭喜您，您已经成为一名光荣的中国共产党员并顺利毕业！</span>
+                        </div>
+                    </el-col>
+                </el-row>
+            </el-main>
+
+            <!--底部-->
+            <el-footer>
+
+            </el-footer>
+        </el-container>
+    </div>
+
+</body>
+
+    <!-- 引入Vue.js -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- 引入 Element UI 组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <!-- 引入axios -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <script>
+        const vm = new Vue({
+            el: "#app",
+            data: {
+                student: {},
+                studentInfo: {
+                    id: "",
+                    name: "",
+                    status: "",
+                    stage: "",
+                    major: "",
+                    duty: "",
+                },
+                targetInfo: {
+                    student_id: "",
+                    target_id: "",
+                    thinking_report: "",
+                    honorary_title: "",
+                    first_rank: "",
+                    second_rank: "",
+                    scholarship_level: "",
+                    ncre: "",
+                    contest: "",
+                    social_practice: "",
+                    sport_activity: "",
+                },
+                activeNames: ['1'],
+            },
+            methods: {
+
+                //安全退出
+                logout(){
+                    localStorage.removeItem("student");
+                    this.$message({
+                        type: 'success',
+                        message: '注销成功！'
+                    })
+                    setTimeout(function (){
+                        location.href="/pmms/page/login.html";
+                    }, 1000);
+                },
+
+                //清空表单
+                reset(){
+                    this.targetInfo = {
+                        student_id: "",
+                        target_id: "",
+                        thinking_report: "",
+                        honorary_title: "",
+                        first_rank: "",
+                        second_rank: "",
+                        scholarship_level: "",
+                        ncre: "",
+                        contest: "",
+                        social_practice: "",
+                        sport_activity: "",
+                    }
+
+                    //恢复学号和目标阶段信息
+                    this.targetInfo.student_id = this.student.student_id;
+                    this.targetInfo.target_id = this.student.target_id;
+
+                },
+
+                //提交表单 更新目标信息
+                submitForm(){
+                    // console.log("测试");
+                    // console.log(this.targetInfo);
+                    let _this = this;
+                    //再次恢复学号和目标阶段信息 保证学号和阶段ID不会为空
+                    this.targetInfo.student_id = this.student.student_id;
+                    this.targetInfo.target_id = this.student.target_id;
+                    axios.post("http://192.168.85.130:8081/pmms/student/insertInfo", this.targetInfo).then((res)=>{
+                            if(res.data.status){
+                                this.$message({
+                                    message: res.data.msg,
+                                    type: 'success'
+                                });
+                                _this.reset();
+                            }else{
+                                this.$message.error(res.data.msg);
+                            }
+                    })
+                },
+
+                //修改密码
+                updatePassword(){
+                    this.$prompt('请输入新密码', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                    }).then(({ value }) => {
+                        let _this = this;
+                        //发送Get请求修改密码
+                        axios.get("http://192.168.85.130:8081/pmms/student/updatePasswordById?student_id=" + this.student.student_id + "&password=" + value).then((res)=>{
+                            if(res.data.status){
+                                _this.$message({
+                                    type: 'success',
+                                    message: res.data.msg,
+                                });
+                            }else{
+                                _this.$message.error(res.data.msg);
+                            }
+                        })
+
+                    })
+                },
+            },
+            created(){
+                let studentJsonString = localStorage.getItem("student");
+                //如果学生已登录
+                if(studentJsonString){
+                    this.student = JSON.parse(studentJsonString);
+
+                    //将信息存入要展示的模型变量内
+                    this.studentInfo.id = this.student.student_id;
+                    this.studentInfo.name = this.student.name;
+
+                    if(this.student.status_id == "1"){
+                        this.studentInfo.status = "入党积极分子";
+                    }else if(this.student.status_id == "2"){
+                        this.studentInfo.status = "中共预备党员";
+                    }else if(this.student.status_id == "3"){
+                        this.studentInfo.status = "中共正式党员";
+                    }else{
+                        this.studentInfo.status = "中共正式党员（毕业）";
+                    }
+
+                    if(this.student.target_id == "1"){
+                        this.studentInfo.stage = "从入党积极分子到中共预备党员阶段";
+                    }else if(this.student.target_id == "2"){
+                        this.studentInfo.stage = "从中共预备党员到中共正式党员阶段";
+                    }else{
+                        this.studentInfo.stage = "从中共正式党员到毕业阶段";
+                    }
+
+                    this.studentInfo.major = this.student.major;
+                    this.studentInfo.duty = this.student.duty;
+
+                    //保存待提交表单的student_id和target_id
+                    this.targetInfo.student_id = this.student.student_id;
+                    this.targetInfo.target_id = this.student.target_id;
+
+                }else{
+                    console.log("还未登录，禁止访问!");
+                    location.href="/pmms/page/login.html";
+                }
+            }
+        })
+    </script>
+
+</html>

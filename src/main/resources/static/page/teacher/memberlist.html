@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>人员信息</title>
+
+    <!-- 引入网站图标 -->
+    <link rel="icon" href="/pmms/ico/favicon.ico" type="image/x-icon"/>
+    <link rel="bookmark" href="/pmms/ico/favicon.ico" type="image/x-icon"/>
+    <!-- 引入 Element UI 样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+
+    <style type="text/css">
+        body{
+            background-image: url("/pmms/img/bg_index.png");
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <el-container>
+            <!--导航条-->
+            <el-header>
+                <el-row>
+                    <el-col :span="18" :offset="3">
+                        <el-menu
+                                class="el-menu-demo"
+                                mode="horizontal"
+                                background-color="#545c64"
+                                text-color="#fff"
+                                active-text-color="#fff">
+                            <el-menu-item index="1"><el-link style="color: white;" href="/pmms/page/teacher/memberlist.html" :underline="false">人员管理</el-link></el-menu-item>
+                            <el-menu-item index="1"><el-link style="color: white;" href="/pmms/page/teacher/targetlist.html" :underline="false">目标管理</el-link></el-menu-item>
+                            <el-submenu index="3" style="float: right">
+                                <!--头像-->
+                                <template slot="title">
+                                    <el-avatar size="large" src="/pmms/ico/favicon.ico" style="margin-right:10px"></el-avatar>
+                                    <span v-text="teacher.name"></span>
+                                </template>
+                                <el-menu-item index="3-1" @click="updatePassword">修改密码</el-menu-item>
+                                <el-menu-item index="3-2" @click="logout">安全退出</el-menu-item>
+                            </el-submenu>
+                        </el-menu>
+                    </el-col>
+                </el-row>
+            </el-header>
+
+            <!--内容区-->
+            <el-main>
+                <el-row>
+                    <el-col :span="18" :offset="3">
+                        <el-table v-show="!isEdit"
+                                :data="tableData.filter(data => !search || data.name.toLowerCase().includes(search.toLowerCase()))"
+                                style="width: 100%">
+                            <el-table-column
+                                    label="学号"
+                                    prop="student_id">
+                            </el-table-column>
+                            <el-table-column
+                                    label="姓名"
+                                    prop="name">
+                            </el-table-column>
+                            <el-table-column
+                                    label="身份"
+                                    prop="status">
+                            </el-table-column>
+                            <el-table-column
+                                    label="专业"
+                                    prop="major">
+                            </el-table-column>
+                            <el-table-column
+                                    align="right">
+                                <template slot="header" slot-scope="scope">
+                                    <el-input
+                                            v-model="search"
+                                            size="mini"
+                                            placeholder="输入关键字搜索"/>
+                                </template>
+                                <template slot-scope="scope">
+                                    <el-button
+                                            size="mini"
+                                            @click="handleEdit(scope.$index, scope.row)">Edit</el-button>
+                                    <el-button
+                                            size="mini"
+                                            type="danger"
+                                            @click="handleDelete(scope.$index, scope.row)">Delete</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <div style="width:50%; margin:100px auto;">
+                            <el-form v-show="isEdit" :model="studentList" label-width="80px">
+                                <el-form-item label="学号">
+                                    <el-input disabled v-model="studentList.student_id"></el-input>
+                                </el-form-item>
+                                <el-form-item label="姓名">
+                                    <el-input v-model="studentList.name"></el-input>
+                                </el-form-item>
+                                <el-form-item label="身份">
+                                    <el-select v-model="studentList.status" placeholder="请选择">
+                                        <el-option
+                                                v-for="item in options"
+                                                :key="item.value"
+                                                :label="item.label"
+                                                :value="item.value">
+                                        </el-option>
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item label="专业">
+                                    <el-input v-model="studentList.major"></el-input>
+                                </el-form-item>
+                                <el-form-item>
+                                    <div style="margin-left:130px; margin-top: 40px;">
+                                        <el-button type="primary" @click="updateStudentList">确定</el-button>
+                                        <el-button @click="quitEdit" style="margin-left:50px;">取消</el-button>
+                                    </div>
+                                </el-form-item>
+                            </el-form>
+                        </div>
+                    </el-col>
+                </el-row>
+            </el-main>
+
+            <!--页脚-->
+            <el-footer>
+
+            </el-footer>
+        </el-container>
+    </div>
+
+</body>
+
+    <!-- 引入Vue.js -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- 引入 Element UI 组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <!-- 引入axios -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        const vm = new Vue({
+            el: "#app",
+            data: {
+                teacher: {},
+                tableData: [],
+                search: '',
+                studentList: {
+                    student_id: '',
+                    name: '',
+                    status: '',
+                    major: '',
+                },
+                isEdit: false,
+                options: [{
+                    value: '入党积极分子',
+                    label: '入党积极分子'
+                },{
+                    value: '中共预备党员',
+                    label: '中共预备党员'
+                },{
+                    value: '中共正式党员',
+                    label: '中共正式党员'
+                },{
+                    value: '中共正式党员（毕业）',
+                    label: '中共正式党员（毕业）'
+                }],
+            },
+            methods: {
+                //安全退出
+                logout(){
+                    localStorage.removeItem("teacher");
+                    this.$message({
+                        type: 'success',
+                        message: '注销成功！'
+                    })
+                    setTimeout(function (){
+                        location.href="/pmms/page/login.html";
+                    }, 1000);
+                },
+                //修改密码
+                updatePassword(){
+                    this.$prompt('请输入新密码', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                    }).then(({ value }) => {
+                        let _this = this;
+                        //发送Get请求修改密码
+                        axios.get("http://192.168.85.130:8081/pmms/teacher/updatePasswordById?teacher_id=" + this.teacher.teacher_id + "&password=" + value).then((res)=>{
+                            if(res.data.status){
+                                _this.$message({
+                                    type: 'success',
+                                    message: res.data.msg,
+                                });
+                            }else{
+                                _this.$message.error(res.data.msg);
+                            }
+                        })
+
+                    })
+                },
+                //修改学生信息
+                handleEdit(index, row) {
+                    this.isEdit = !this.isEdit;
+                    this.studentList = row;
+                    console.log(index, row);
+                },
+                //删除学生信息
+                handleDelete(index, row) {
+                    this.$confirm('确定删除该学生的所有信息吗?', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        let _this = this;
+                        // 发送删除请求
+                        axios.get("http://192.168.85.130:8081/pmms/teacher/deleteStudent?student_id=" +
+                            row.student_id).then((res)=>{
+                            //删除成功
+                            if(res.data.status){
+                                _this.$message({
+                                    type: 'success',
+                                    message: res.data.msg,
+                                });
+
+                                //刷新学生数据
+                                axios.get("http://192.168.85.130:8081/pmms/teacher/queryBranchMembers?branch_id=" + this.teacher.branch_id).then((res)=>{
+                                    _this.tableData = res.data;
+                                    console.log(res.data);
+                                })
+
+                            }else{
+                                //删除失败
+                                _this.$message.error(res.data.msg);
+                            }
+                        })
+
+
+                    }).catch(()=>{
+
+                    })
+                    console.log(index, row);
+                },
+
+                //取消修改
+                quitEdit(){
+                    this.isEdit = !this.isEdit;
+                },
+
+                //提交修改
+                updateStudentList(){
+                    this.isEdit = !this.isEdit;
+                    let _this = this;
+                    //发送更新信息请求
+                    axios.post("http://192.168.85.130:8081/pmms/teacher/updateStudentInfoByStudentList", this.studentList).then((res)=>{
+                        //如果更新成功
+                        if(res.data.status){
+                            _this.$message({
+                                type: 'success',
+                                message: res.data.msg,
+                            });
+                        }else{
+                            //如果更新失败
+                            _this.$message.error(res.data.msg);
+                        }
+                    })
+                }
+            },
+            created(){
+                var teacherJsonString = localStorage.getItem("teacher");
+                //判断是否登录
+                if(teacherJsonString){
+                    //如果已登录则取出teacher对象
+                    this.teacher = JSON.parse(teacherJsonString);
+                }else{
+                    console.log("还未登录，禁止访问!");
+                    //如果未登录则切换到登录页面
+                    location.href = "/pmms/page/login.html";
+                }
+
+                let _this = this;
+                //查询属于该教师管理的所有学生信息
+                axios.get("http://192.168.85.130:8081/pmms/teacher/queryBranchMembers?branch_id=" + this.teacher.branch_id).then((res)=>{
+                    _this.tableData = res.data;
+                })
+
+            }
+        });
+    </script>
+
+</html>

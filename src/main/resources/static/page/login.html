@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title>党员目标管理系统</title>
+    <!-- 引入网站图标 -->
+    <link rel="icon" href="/pmms/ico/favicon.ico" type="image/x-icon"/>
+    <link rel="bookmark" href="/pmms/ico/favicon.ico" type="image/x-icon"/>
+    <!-- 引入 Element UI 样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+
+    <style type="text/css">
+
+        html,body{
+            width:100%;
+            height:100%
+        }
+
+        body {
+            background: url("/pmms/img/bg_login.png") no-repeat;
+            /*禁用滚动条 超出的部分全部隐藏*/
+            overflow-x:hidden;
+            overflow-y:hidden;
+        }
+
+        #loginBackground{
+            text-align: center;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <el-container>
+            <!-- 头部  -->
+            <el-header>
+                <el-row>
+                    <!-- 学校logo -->
+                    <el-col :span="5" :offset="5">
+                        <div class="logo-school" style="margin-top:25px">
+                            <div class="block">
+                                <el-image src="/pmms/img/logo_school.png" ></el-image>
+                            </div>
+                        </div>
+                    </el-col>
+
+                    <!--系统名称-->
+                    <el-col :span="12">
+                        <div class="logo-system">
+                            <div class="block">
+                                <el-image src="/pmms/img/logo_system.png" ></el-image>
+                            </div>
+                        </div>
+                    </el-col>
+                </el-row>
+            </el-header>
+
+            <!-- 内容区  -->
+            <el-main>
+                <!--表单-->
+                <el-row style="margin-top:130px;">
+                    <el-col :span="5" :offset="9">
+                        <div id="loginBackground">
+                            <div id="loginForm">
+                                <el-form ref="form" :model="loginInfo">
+                                    <div style="text-align: center;">
+                                        <h1>用户登录</h1>
+                                    </div>
+                                    <el-form-item>
+                                        <el-input placeholder="学号/工号" prefix-icon="el-icon-user" v-model="loginInfo.id"></el-input>
+                                    </el-form-item>
+                                    <el-form-item>
+                                        <el-input placeholder="密码" show-password prefix-icon="el-icon-unlock"  v-model="loginInfo.password"></el-input>
+                                    </el-form-item>
+                                    <el-form-item>
+                                        <div style="text-align: center;">
+                                            <el-radio-group v-model="loginInfo.role">
+                                                <el-radio label="学生"></el-radio>
+                                                <el-radio label="教师"></el-radio>
+                                                <el-radio label="管理员"></el-radio>
+                                            </el-radio-group>
+                                        </div>
+                                    </el-form-item>
+                                    <el-form-item >
+                                        <el-button type="primary" @click="onSubmit" style="width: 75%;" plain>登录</el-button>
+                                    </el-form-item>
+                                </el-form>
+                            </div>
+                        </div>
+                    </el-col>
+                </el-row>
+            </el-main>
+
+            <!-- 底部  -->
+            <el-footer>
+
+            </el-footer>
+        </el-container>
+    </div>
+
+</body>
+
+    <!-- 引入Vue.js -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- 引入 Element UI 组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <!-- 引入axios -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script>
+        const vm = new Vue({
+            el: "#app",
+            data: {
+                loginInfo: {
+                    id: '',
+                    password: '',
+                    role: '学生',
+                }
+            },
+            methods: {
+                onSubmit() {
+                    console.log(this.loginInfo);
+                    let _this = this;
+                    axios.post("http://192.168.85.130:8081/pmms/login", this.loginInfo).then((res)=>{
+                        //登录成功
+                        if(res.data.status){
+                            this.$message({
+                                message: res.data.msg,
+                                type: 'success'
+                            });
+
+                            //判断登录成功的角色
+                            if(res.data.role == 'student'){
+                                //将学生的登录信息保存
+                                localStorage.setItem("student", JSON.stringify(res.data.student));
+                                //延迟1s跳转到学生主页
+                                setTimeout(function (){
+                                    location.href="/pmms/page/student/index.html";
+                                }, 1000);
+                            }else if(res.data.role == 'teacher'){
+                                //将教师的登录信息保存
+                                localStorage.setItem("teacher", JSON.stringify(res.data.teacher));
+                                //延迟1s后跳转到教师主页
+                                setTimeout(function(){
+                                    location.href="/pmms/page/teacher/memberlist.html";
+                                }, 1000);
+                            }else{
+                                //将管理员的登录信息保存
+                                localStorage.setItem("admin", JSON.stringify(res.data.admin));
+                                //延迟1s后跳转到管理员主页
+                                setTimeout(function(){
+                                    location.href="/pmms/page/admin/studentlist.html";
+                                }, 1000);
+                            }
+                        }else{
+                            //登录失败
+                            this.$message.error(res.data.msg);
+                        }
+                    })
+                }
+            }
+        });
+    </script>
+</html>

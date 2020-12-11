@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>添加学生</title>
+
+    <!-- 引入网站图标 -->
+    <link rel="icon" href="/pmms/ico/favicon.ico" type="image/x-icon"/>
+    <link rel="bookmark" href="/pmms/ico/favicon.ico" type="image/x-icon"/>
+    <!-- 引入 Element UI 样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+
+    <style type="text/css">
+        body {
+            background-image: url("/pmms/img/bg_index.png");
+        }
+
+        #wrap {
+            margin: 10px 10px;
+            margin-top: 70px;
+        }
+
+        #addStudentForm{
+            width: 26%;
+            margin: 50px auto;
+        }
+    </style>
+
+</head>
+<body>
+
+<div id="app">
+    <div id="wrap">
+        <el-container>
+            <!--左侧菜单栏-->
+            <el-aside width="200px" style="margin-bottom: 0px">
+                <el-menu style="height: 580px;"
+                         :default-openeds="defaultOpen"
+                         default-active="1-2"
+                         class="el-menu-vertical-demo"
+                         background-color="#545c64"
+                         text-color="#fff"
+                         active-text-color="#ffd04b">
+                    <el-submenu index="1">
+                        <template slot="title">
+                            <i class="el-icon-user"></i>
+                            <span>学生管理</span>
+                        </template>
+                        <el-menu-item index="1-1" @click="toStudentList">学生列表</el-menu-item>
+                        <el-menu-item index="1-2" @click="toAddStudent">添加学生</el-menu-item>
+                    </el-submenu>
+                    <el-submenu index="2">
+                        <template slot="title">
+                            <i class="el-icon-s-custom"></i>
+                            <span>教师管理</span>
+                        </template>
+                        <el-menu-item index="2-1" @click="toTeacherList">教师列表</el-menu-item>
+                        <el-menu-item index="2-2" @click="toAddTeacher">添加教师</el-menu-item>
+                    </el-submenu>
+                    <el-submenu index="3">
+                        <template slot="title">
+                            <i class="el-icon-s-home"></i>
+                            <span>党支部管理</span>
+                        </template>
+                        <el-menu-item index="3-1" @click="toPartList">党支部列表</el-menu-item>
+                        <el-menu-item index="3-2" @click="toAddPart">添加党支部</el-menu-item>
+                    </el-submenu>
+                </el-menu>
+            </el-aside>
+
+            <el-container style="margin-top:-20px;">
+                <!--内容区-->
+                <el-main style="margin-bottom: 0px;">
+                    <div id="addStudentForm">
+                        <el-form :model="addStudent" label-width="80px">
+                            <el-form-item label="学号">
+                                <el-input v-model="addStudent.student_id"></el-input>
+                            </el-form-item>
+                            <el-form-item label="姓名">
+                                <el-input v-model="addStudent.name"></el-input>
+                            </el-form-item>
+                            <el-form-item label="专业">
+                                <el-input v-model="addStudent.major"></el-input>
+                            </el-form-item>
+                            <el-form-item label="职务">
+                                <el-input v-model="addStudent.duty"></el-input>
+                            </el-form-item>
+                            <el-form-item label="身份">
+                                <el-select style="width:100%" v-model="addStudent.status_id" placeholder="请选择">
+                                    <el-option
+                                            v-for="item in allStatus"
+                                            :key="item.value"
+                                            :label="item.label"
+                                            :value="item.value">
+                                    </el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item label="支部">
+                                <el-select style="width: 100%;" v-model="addStudent.branch_id" placeholder="请选择">
+                                    <el-option
+                                            v-for="item in allBranch"
+                                            :key="item.value"
+                                            :label="item.label"
+                                            :value="item.value">
+                                    </el-option>
+                                </el-select>
+                            </el-form-item>
+                            <div style="text-align: center;">
+                                <el-form-item>
+                                    <el-button @click="reset">重 置</el-button>
+                                    &nbsp;&nbsp;
+                                    <el-button type="primary" @click="submitStudent">确 定</el-button>
+                                </el-form-item>
+                            </div>
+                        </el-form>
+                    </div>
+                </el-main>
+
+                <!--页脚-->
+                <!--                    <el-footer>-->
+
+                <!--                    </el-footer>-->
+            </el-container>
+        </el-container>
+    </div>
+</div>
+
+</body>
+
+<!-- 引入Vue.js -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- 引入 Element UI 组件库 -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<!-- 引入axios -->
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script>
+    const vm = new Vue({
+        el: '#app',
+        data: {
+            defaultOpen: ['1', '2', '3'],
+            addStudent: {},
+            admin: {},
+            allStatus: [{
+                value: '入党积极分子',
+                label: '入党积极分子'
+            },{
+                value: '中共预备党员',
+                label: '中共预备党员'
+            },{
+                value: '中共正式党员',
+                label: '中共正式党员'
+            },{
+                value: '中共正式党员（毕业）',
+                label: '中共正式党员（毕业）'
+            }],
+            allBranch: [],
+        },
+        methods: {
+            toStudentList() {
+                location.href = "/pmms/page/admin/studentlist.html";
+            },
+            toAddStudent() {
+                location.href = "/pmms/page/admin/addstudent.html";
+            },
+            toTeacherList() {
+                location.href = "/pmms/page/admin/teacherlist.html";
+            },
+            toAddTeacher() {
+                location.href = "/pmms/page/admin/addteacher.html";
+            },
+            toPartList() {
+                location.href = "/pmms/page/admin/partlist.html";
+            },
+            toAddPart() {
+                location.href = "/pmms/page/admin/addpart.html";
+            },
+            submitStudent(){
+                let _this = this;
+
+                axios.post("http://192.168.85.130:8081/pmms/admin/insertStudent", this.addStudent)
+                .then((res)=>{
+                    //如果添加成功
+                    if(res.data.status){
+                        _this.$message({
+                            type: 'success',
+                            message: res.data.msg,
+                        });
+                        _this.reset();
+                    }else{
+                        //如果添加失败
+                        _this.$message.error(res.data.msg);
+                        _this.reset();
+                    }
+                })
+            },
+            reset(){
+                this.addStudent = {};
+            }
+        },
+        created() {
+            var adminJsonString = localStorage.getItem("admin");
+            //判断是否登录
+            if (adminJsonString) {
+                //如果已登录则取出admin对象
+                this.admin = JSON.parse(adminJsonString);
+            } else {
+                console.log("还未登录，禁止访问!");
+                //如果未登录则切换到登录页面
+                location.href = "/pmms/page/login.html";
+            }
+
+            let _this = this;
+
+            //查询所有支部信息
+            axios.get("http://192.168.85.130:8081/pmms/admin/getAllBranch").then((res)=>{
+                console.log(res.data);
+                _this.allBranch = res.data;
+            })
+        }
+    })
+</script>
+
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>党支部列表</title>
+
+    <!-- 引入网站图标 -->
+    <link rel="icon" href="/pmms/ico/favicon.ico" type="image/x-icon"/>
+    <link rel="bookmark" href="/pmms/ico/favicon.ico" type="image/x-icon"/>
+    <!-- 引入 Element UI 样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+
+    <style type="text/css">
+        body {
+            background-image: url("/pmms/img/bg_index.png");
+        }
+
+        #wrap {
+            margin: 10px 10px;
+            margin-top: 70px;
+        }
+    </style>
+
+</head>
+<body>
+
+<div id="app">
+    <div id="wrap">
+        <el-container>
+            <!--左侧菜单栏-->
+            <el-aside width="200px" style="margin-bottom: 0px">
+                <el-menu style="height: 580px;"
+                         :default-openeds="defaultOpen"
+                         default-active="3-1"
+                         class="el-menu-vertical-demo"
+                         background-color="#545c64"
+                         text-color="#fff"
+                         active-text-color="#ffd04b">
+                    <el-submenu index="1">
+                        <template slot="title">
+                            <i class="el-icon-user"></i>
+                            <span>学生管理</span>
+                        </template>
+                        <el-menu-item index="1-1" @click="toStudentList">学生列表</el-menu-item>
+                        <el-menu-item index="1-2" @click="toAddStudent">添加学生</el-menu-item>
+                    </el-submenu>
+                    <el-submenu index="2">
+                        <template slot="title">
+                            <i class="el-icon-s-custom"></i>
+                            <span>教师管理</span>
+                        </template>
+                        <el-menu-item index="2-1" @click="toTeacherList">教师列表</el-menu-item>
+                        <el-menu-item index="2-2" @click="toAddTeacher">添加教师</el-menu-item>
+                    </el-submenu>
+                    <el-submenu index="3">
+                        <template slot="title">
+                            <i class="el-icon-s-home"></i>
+                            <span>党支部管理</span>
+                        </template>
+                        <el-menu-item index="3-1" @click="toPartList">党支部列表</el-menu-item>
+                        <el-menu-item index="3-2" @click="toAddPart">添加党支部</el-menu-item>
+                    </el-submenu>
+                </el-menu>
+            </el-aside>
+
+            <el-container style="margin-top:-20px;">
+                <!--内容区-->
+                <el-main style="margin-bottom: 0px">
+                    <el-table height="581"
+                              :data="tableData.filter(data => !search || data.name.toLowerCase().includes(search.toLowerCase()))"
+                              style="width: 100%">
+                        <el-table-column
+                                label="ID"
+                                prop="branch_id">
+                        </el-table-column>
+                        <el-table-column
+                                label="党支部名称"
+                                prop="name">
+                        </el-table-column>
+                        <el-table-column
+                                label="党支部人数"
+                                prop="person_num">
+                        </el-table-column>
+                        <el-table-column
+                                align="right">
+                            <template slot="header" slot-scope="scope">
+                                <el-input
+                                        v-model="search"
+                                        size="mini"
+                                        placeholder="输入关键字搜索"/>
+                            </template>
+                            <template slot-scope="scope">
+                                <div style="text-align: center;">
+                                    <el-button
+                                            size="medium"
+                                            type="danger"
+                                            @click="handleDelete(scope.$index, scope.row)">Delete
+                                    </el-button>
+                                </div>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </el-main>
+
+                <!--页脚-->
+                <!--                    <el-footer>-->
+
+                <!--                    </el-footer>-->
+            </el-container>
+        </el-container>
+    </div>
+</div>
+
+</body>
+
+<!-- 引入Vue.js -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- 引入 Element UI 组件库 -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<!-- 引入axios -->
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script>
+    const vm = new Vue({
+        el: '#app',
+        data: {
+            defaultOpen: ['1', '2', '3'],
+            tableData: [],
+            search: '',
+            admin: {},
+        },
+        methods: {
+            toStudentList() {
+                location.href = "/pmms/page/admin/studentlist.html";
+            },
+            toAddStudent() {
+                location.href = "/pmms/page/admin/addstudent.html";
+            },
+            toTeacherList() {
+                location.href = "/pmms/page/admin/teacherlist.html";
+            },
+            toAddTeacher() {
+                location.href = "/pmms/page/admin/addteacher.html";
+            },
+            toPartList() {
+                location.href = "/pmms/page/admin/partlist.html";
+            },
+            toAddPart() {
+                location.href = "/pmms/page/admin/addpart.html";
+            },
+
+            //删除党支部
+            handleDelete(index, row) {
+                this.$confirm('删除该党支部会清空其所有的成员信息，您确定吗?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    let _this = this;
+                    // 发送删除请求
+                    axios.get("http://192.168.85.130:8081/pmms/admin/deleteBranchById?branch_id=" +
+                        row.branch_id).then((res)=>{
+                        //删除成功
+                        if(res.data.status){
+                            //刷新党支部数据
+                            axios.get("http://192.168.85.130:8081/pmms/admin/getAllBranchList").then((res) => {
+                                _this.tableData = res.data;
+                            })
+                            _this.$message({
+                                type: 'success',
+                                message: res.data.msg,
+                            });
+                        }else{
+                            //删除失败
+                            _this.$message.error(res.data.msg);
+                        }
+                    })
+                }).catch(()=>{
+
+                })
+                console.log(index, row);
+            },
+        },
+        created() {
+            var adminJsonString = localStorage.getItem("admin");
+            //判断是否登录
+            if (adminJsonString) {
+                //如果已登录则取出admin对象
+                this.admin = JSON.parse(adminJsonString);
+            } else {
+                console.log("还未登录，禁止访问!");
+                //如果未登录则切换到登录页面
+                location.href = "/pmms/page/login.html";
+            }
+
+            let _this = this;
+            //查询所有党支部信息
+            axios.get("http://192.168.85.130:8081/pmms/admin/getAllBranchList").then((res) => {
+                _this.tableData = res.data;
+            })
+        }
+    })
+</script>
+
+</html>
